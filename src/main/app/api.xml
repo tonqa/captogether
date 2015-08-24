@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd" version="EE-3.6.1">
+    <http:listener-config name="api-httpListenerConfig" host="localhost" port="8081" doc:name="HTTP Listener Configuration" />
+    <apikit:config name="api-config" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router" />
+    <db:mysql-config name="MySQL_Configuration" url="jdbc:mysql://localhost:3306/eventdb?user=user&amp;password=password" doc:name="MySQL Configuration" />
+    <apikit:mapping-exception-strategy name="api-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload" />
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload" />
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+    <flow name="api-main">
+        <http:listener config-ref="api-httpListenerConfig" path="/api/*" doc:name="HTTP" />
+        <apikit:router config-ref="api-config" doc:name="APIkit Router" />
+        <exception-strategy ref="api-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy" />
+    </flow>
+    <flow name="put:/capevents/{eventId}:application/json:api-config">
+        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
+        <db:update config-ref="MySQL_Configuration" doc:name="Set Event Stmt">
+            <db:dynamic-query><![CDATA[UPDATE events SET
+	title = "#[payload['title']]", 
+	date = "#[payload['date']]", 
+	category = #[payload['category'] != null ? ('\"' + payload['category'] + '\"') : "NULL"], 
+	city = #[payload['city'] != null ? ('\"' + payload['city'] + '\"') : "NULL"], 
+	country = #[payload['country'] != null ? ('\"' + payload['country'] + '\"') : "NULL"], 
+	description = #[payload['description'] != null ? ('\"' + payload['description'] + '\"') : "NULL"], 
+	street = #[payload['street'] != null ? ('\"' + payload['street'] + '\"') : "NULL"], 
+	geolocation = #[payload['geolocation'] != null ? ('\"' + payload['geolocation'] + '\"') : "NULL"], 
+	streetnr = #[payload['streetnr']], 
+	zipcode = #[payload['zipcode'] != null ? ('\"' + payload['zipcode'] + '\"') : "NULL"]
+WHERE id = #[flowVars.eventId];]]></db:dynamic-query>
+        </db:update>
+        <db:select config-ref="MySQL_Configuration" doc:name="Get Event by eventId">
+            <db:dynamic-query><![CDATA[SELECT id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
+FROM events 
+WHERE 
+	id = "#[flowVars.eventId]";]]></db:dynamic-query>
+        </db:select>
+        <payload-type-filter expectedType="java.util.List" doc:name="Must be List"/>
+        <set-payload value="#[payload[0]]" doc:name="Select first object"/>
+        <json:object-to-json-transformer doc:name="Convert Object to JSON"/>
+
+    </flow>
+    <flow name="get:/capevents:api-config">
+        <db:select config-ref="MySQL_Configuration" doc:name="Get Events Query">
+            <db:dynamic-query><![CDATA[select id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
+from events]]></db:dynamic-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Convert Object to JSON" />
+    </flow>
+
+    <flow name="get:/capevents/{eventId}:api-config">
+        <db:select config-ref="MySQL_Configuration" doc:name="Get Event Query">
+            <db:dynamic-query><![CDATA[select id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
+from events where id = "#[flowVars.eventId]"]]></db:dynamic-query>
+        </db:select>
+        <payload-type-filter expectedType="java.util.List" doc:name="Must be List"/>
+        <set-payload value="#[payload[0]]" doc:name="Select first object"/>
+        <json:object-to-json-transformer doc:name="Convert Object to JSON"/>
+
+    </flow>
+
+    <flow name="post:/capevents:application/json:api-config">
+        <json:json-to-object-transformer returnClass="java.util.HashMap" doc:name="JSON to Object"/>
+        <set-variable variableName="title" value="#[payload[&quot;title&quot;]]" doc:name="Set Title Variable"/>
+        <set-variable variableName="date" value="#[payload[&quot;date&quot;]]" doc:name="Set Date Variable"/>
+        <db:insert config-ref="MySQL_Configuration" doc:name="Insert Events Stmt">
+            <db:dynamic-query><![CDATA[INSERT INTO events (title,date,category,city,country,description,street,geolocation,streetnr,zipcode) VALUES (
+	"#[payload['title']]", 
+	"#[payload['date']]", 
+	#[payload['category'] != null ? ('\"' + payload['category'] + '\"') : "NULL"], 
+	#[payload['city'] != null ? ('\"' + payload['city'] + '\"') : "NULL"], 
+	#[payload['country'] != null ? ('\"' + payload['country'] + '\"') : "NULL"], 
+	#[payload['description'] != null ? ('\"' + payload['description'] + '\"') : "NULL"], 
+	#[payload['street'] != null ? ('\"' + payload['street'] + '\"') : "NULL"], 
+	#[payload['geolocation'] != null ? ('\"' + payload['geolocation'] + '\"') : "NULL"], 
+	#[payload['streetnr']], 
+	#[payload['zipcode'] != null ? ('\"' + payload['zipcode'] + '\"') : "NULL"]
+);]]></db:dynamic-query>
+        </db:insert>
+        <db:select config-ref="MySQL_Configuration" doc:name="Get Event by title and date">
+            <db:dynamic-query><![CDATA[SELECT id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
+FROM events 
+WHERE 
+	title = "#[flowVars.title]" and 
+	date = "#[flowVars.date]";]]></db:dynamic-query>
+        </db:select>
+        <payload-type-filter expectedType="java.util.List" doc:name="Must be List"/>
+        <set-payload value="#[payload[0]]" doc:name="Select first object"/>
+        <json:object-to-json-transformer doc:name="Convert Object to JSON"/>
+
+    </flow>
+
+</mule>

@@ -1,0 +1,146 @@
+#%RAML 0.8
+title: AngularJs Workshop Company Events
+baseUri: http://mocksvc.mulesoft.com/mocks/d3a78c71-b352-49d6-91a4-8e5458faf668
+version: v1
+/capevents:
+  displayName: Company Events Resource
+  get: 
+    description: gets the list of company events
+    responses:
+      200:
+        description: success
+        body:
+          application/json:
+            example: |
+              [{
+                "id": 1,
+                "date": "19 Sep 2015",
+                "title": "Paddeltour auf der Örtze",
+                "category": "SPORT",
+                "participants": 33
+              }]
+  post:
+    description: creates a new company event
+    body:
+      application/json:
+        schema: |
+          {
+            "$schema": "http://json-schema.org/schema",
+            "type": "object",
+            "description": "writes an event with Id",
+            "required": true,
+            "properties": {
+              "date":  { "type": "string", "required": true },
+              "title": { "type": "string", "required": true },
+              "category":  { "type": "string", "required": true },
+              "participants":  { "type": "integer", "required": true },
+              "description":  { "type": "string", "required": false },
+              "street":  { "type": "string", "required": false },
+              "streetnr":  { "type": "integer", "required": false },
+              "zipcode":  { "type": "string", "required": false },
+              "city":  { "type": "string", "required": false },
+              "country":  { "type": "string", "required": false },
+              "geolocation":  { "type": "string", "required": false }
+            }
+          }
+        example: |
+          {
+            "date": "19 Sep 2015",
+            "title": "Paddeltour auf der Örtze",
+            "category": "SPORT",
+            "participants": 1
+          }
+    responses:
+      201:
+        description: created
+        body:
+          application/json:
+            example: | 
+              {
+                "id": 1,
+                "date": "19 Sep 2015",
+                "title": "Paddeltour auf der Örtze",
+                "category": "SPORT",
+                "participants": 1,
+                "description": null,
+                "street": null,
+                "streetnr": null,
+                "zipcode": null,
+                "city": null,
+                "country": null,
+                "geolocation": null
+              }
+  /{eventId}:
+    get:
+      description: queries an event with Id
+      responses:
+        200:
+          description: success
+          body:
+            application/json:
+              example: |
+                {
+                  "id": 1,
+                  "date": "19 Sep 2015",
+                  "title": "Paddeltour auf der Örtze",
+                  "category": "SPORT",
+                  "participants": 2,
+                  "description": null,
+                  "street": null,
+                  "streetnr": null,
+                  "zipcode": null,
+                  "city": null,
+                  "country": null,
+                  "geolocation": null
+                }
+    put:
+      description: writes an event with Id
+      body:
+        application/json:
+          schema: |
+            {
+              "$schema": "http://json-schema.org/schema",
+              "type": "object",
+              "description": "writes an event with Id",
+              "required": true,
+              "properties": {
+                "date":  { "type": "string", "required": true },
+                "title": { "type": "string", "required": true },
+                "category":  { "type": "string", "required": true },
+                "participants":  { "type": "integer", "required": true },
+                "description":  { "type": "string", "required": false },
+                "street":  { "type": "string", "required": false },
+                "streetnr":  { "type": "integer", "required": false },
+                "zipcode":  { "type": "string", "required": false },
+                "city":  { "type": "string", "required": false },
+                "country":  { "type": "string", "required": false },
+                "geolocation":  { "type": "string", "required": false }
+              }
+            }
+          example: |
+            {
+              "date": "20 Sep 2015",
+              "title": "Paddeltour auf der Örtze",
+              "category": "SPORT",
+              "participants": 1
+            }
+      responses:
+        204:
+          description: success
+          body:
+            application/json:
+              example: |
+                {
+                  "id": 1,
+                  "date": "19 Sep 2015",
+                  "title": "Paddeltour auf der Örtze",
+                  "category": "SPORT",
+                  "participants": 2,
+                  "description": null,
+                  "street": null,
+                  "streetnr": null,
+                  "zipcode": null,
+                  "city": null,
+                  "country": null,
+                  "geolocation": null
+                }
