@@ -10,6 +10,7 @@ This repository contains the Captogether Backend for the AngularJS workshop base
 1. Download Mule Runtime 3.6.1 CE ([Go here](https://developer.mulesoft.com/download-mule-esb-runtime) and then see older "Older Versions", Download and extract ZIP)
 1. Start Mule Runtime and deploy '{repo}/artifacts/api.zip' (described [here](https://developer.mulesoft.com/docs/display/current/Walkthrough+Deploy+to+Runtime))
 1. Then correct the MySQL database settings for your local MySQL ({mule_folder}/apps/api/application.properties) and restart Mule ESB
+1. You should finally open "http://localhost:8081/api/console/" to find out if the backened works
 
 ## Setup Anypoint Studio development environment (for development)
 
