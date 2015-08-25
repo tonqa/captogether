@@ -1,6 +1,6 @@
 # captogether
 
-This repository contains the Capgemini Workshop Backend for the AngularJS workshop
+This repository contains the Captogether Backend for the AngularJS workshop based on Mule ESB
 
 ## Setup Standalone Mule Runtime and MySQL (for deployment)
 
