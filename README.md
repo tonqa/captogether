@@ -16,7 +16,7 @@ This repository contains the Captogether Backend for the AngularJS workshop base
 
 Download this repository content into a folder (you can use "Download as zip" on the right side of the Github project page)
 
-Install boot2docker, installation comes with Docker, boot2docker is only needed when you are on windows, then start boot2docker 
+Install boot2docker, with Boot2docker installation comes Docker, boot2docker is only needed when you are on windows, then start boot2docker 
 
 	boot2docker.exe up
 
