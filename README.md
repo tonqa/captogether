@@ -12,13 +12,7 @@ This repository contains the Captogether Backend for the AngularJS workshop base
 1. Then correct the MySQL database settings for your local MySQL ({mule_folder}/apps/api/application.properties) and restart Mule ESB
 1. You should finally open "http://localhost:8081/api/console/" to find out if the backened works
 
-## Setup Anypoint Studio development environment (for development)
-
-1. Check out the project repository
-1. Download and install Anypoint Studio 
-1. Import project (File > Import > Anypoint Studio project from external location)
-
-## Alternatively you can also install the Standalone Mule Runtime and MySQL with Docker
+## Alternatively you can also install the Standalone Mule Runtime and MySQL with Docker (for deployment), this is much less error prone..
 
 Install boot2docker, installation comes with Docker, boot2docker is only needed when you are on windows, then start boot2docker 
 
@@ -73,3 +67,9 @@ If the Mule needs to be stopped do the following
 If you want to stop the MySQL do the following
 
 	docker stop mysql; docker rm mysql;
+
+## Setup Anypoint Studio development environment (for development)
+
+1. Check out the project repository
+1. Download and install Anypoint Studio 
+1. Import project (File > Import > Anypoint Studio project from external location)
