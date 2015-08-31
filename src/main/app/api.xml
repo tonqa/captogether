@@ -9,23 +9,24 @@
 	xmlns:util="http://www.springframework.org/schema/util"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-		http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
-		http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
-		http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-	    http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd
-		http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd" 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd" 
 	version="EE-3.6.1">
+    <spring:beans>
+        <spring:bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        	<spring:property name="locations">
+	        	<util:list>
+	        		<spring:value>classpath:application.properties</spring:value>
+	        	</util:list>
+        	</spring:property>
+        </spring:bean>
+    </spring:beans>
 
-	<spring:bean
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<spring:property name="locations">
-			<util:list>
-				<spring:value>classpath:application.properties</spring:value>
-			</util:list>
-		</spring:property>
-	</spring:bean>
-    <http:listener-config name="api-httpListenerConfig" host="${app.host}" port="${app.port}" doc:name="HTTP Listener Configuration" />
+    <http:listener-config name="api-httpListenerConfig" host="${http.host}" port="${http.port}" doc:name="HTTP Listener Configuration" />
     <apikit:config name="api-config" raml="api.raml" consoleEnabled="true" consolePath="console" doc:name="Router" />
     <db:mysql-config name="MySQL_Configuration" url="${db.mysql.url}" doc:name="MySQL Configuration" />
     <apikit:mapping-exception-strategy name="api-apiKitGlobalExceptionMapping">
@@ -76,23 +77,30 @@
 	zipcode = #[payload['zipcode'] != null ? ('\"' + payload['zipcode'] + '\"') : "NULL"]
 WHERE id = #[flowVars.eventId];]]></db:dynamic-query>
         </db:update>
+
         <db:select config-ref="MySQL_Configuration" doc:name="Get Event by eventId">
             <db:dynamic-query><![CDATA[SELECT id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
 FROM events 
 WHERE 
 	id = "#[flowVars.eventId]";]]></db:dynamic-query>
+
         </db:select>
+        <expression-filter expression="#[payload.size() &gt; 0]" doc:name="Result must not be empty"/>
         <payload-type-filter expectedType="java.util.List" doc:name="Must be List"/>
         <set-payload value="#[payload[0]]" doc:name="Select first object"/>
+
         <json:object-to-json-transformer doc:name="Convert Object to JSON"/>
 
     </flow>
     <flow name="get:/capevents:api-config">
+
         <db:select config-ref="MySQL_Configuration" doc:name="Get Events Query">
             <db:dynamic-query><![CDATA[select id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
 from events]]></db:dynamic-query>
+
         </db:select>
         <json:object-to-json-transformer doc:name="Convert Object to JSON" />
+        <logger level="INFO" doc:name="Logger"/>
     </flow>
 
     <flow name="get:/capevents/{eventId}:api-config">
@@ -100,7 +108,9 @@ from events]]></db:dynamic-query>
             <db:dynamic-query><![CDATA[select id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
 from events where id = "#[flowVars.eventId]"]]></db:dynamic-query>
         </db:select>
+
         <payload-type-filter expectedType="java.util.List" doc:name="Must be List"/>
+        <expression-filter expression="#[payload.size() &gt; 0]" doc:name="Result must not be empty"/>
         <set-payload value="#[payload[0]]" doc:name="Select first object"/>
         <json:object-to-json-transformer doc:name="Convert Object to JSON"/>
 
@@ -132,6 +142,7 @@ WHERE
 	date = "#[flowVars.date]";]]></db:dynamic-query>
         </db:select>
         <payload-type-filter expectedType="java.util.List" doc:name="Must be List"/>
+        <expression-filter expression="#[payload.size() &gt; 0]" doc:name="Result must not be empty"/>
         <set-payload value="#[payload[0]]" doc:name="Select first object"/>
         <json:object-to-json-transformer doc:name="Convert Object to JSON"/>
 
