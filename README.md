@@ -46,9 +46,15 @@ Inside MySQL Client do this
 
 Repackage the {projectdir}/artifacts/api.zip with the following application.properties values
 
-	app.host=0.0.0.0
-	app.port=8081
+
+	http.host=0.0.0.0
 	db.mysql.url=jdbc:mysql://mysql:3306/eventdb?user=user&password=password
+
+
+and with the following mule-deploy.properties
+
+
+	http.port=8081
 
 __Important: Also make sure to open the port 8081 on your Docker-VM-Image (on Windows this is the boot2docker-Image hosted by Virtualbox).__
 
