@@ -35,39 +35,40 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
     <apikit:mapping-exception-strategy name="api-apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">
             <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
-            <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
-            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload" />
-        </apikit:mapping>
-        <apikit:mapping statusCode="404">
-            <apikit:exception value="org.mule.api.routing.filter.FilterUnacceptedException" />
+            <apikit:exception value="org.mule.api.routing.filter.FilterUnacceptedException"/>
+	        <cors:validate publicResource="true" doc:name="CORS Validate" />
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
             <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload" />
         </apikit:mapping>
         <apikit:mapping statusCode="405">
             <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+	        <cors:validate publicResource="true" doc:name="CORS Validate" />
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
             <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload" />
         </apikit:mapping>
         <apikit:mapping statusCode="415">
             <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+	        <cors:validate publicResource="true" doc:name="CORS Validate" />
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
             <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload" />
         </apikit:mapping>
         <apikit:mapping statusCode="406">
             <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+	        <cors:validate publicResource="true" doc:name="CORS Validate" />
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
             <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload" />
         </apikit:mapping>
         <apikit:mapping statusCode="400">
             <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+	        <cors:validate publicResource="true" doc:name="CORS Validate" />
             <set-property propertyName="Content-Type" value="application/json" doc:name="Property" />
             <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload" />
         </apikit:mapping>
     </apikit:mapping-exception-strategy>
     <flow name="api-main">
         <http:listener config-ref="api-httpListenerConfig" path="/api/*" doc:name="HTTP" />
-        <cors:validate publicResource="true" doc:name="CORS Validate" />
         <apikit:router config-ref="api-config" doc:name="APIkit Router" />
+        <cors:validate publicResource="true" doc:name="CORS Validate" />
         <exception-strategy ref="api-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy" />
     </flow>
     <flow name="put:/capevents/{eventId}:application/json:api-config">
@@ -77,22 +78,17 @@ http://www.mulesoft.org/schema/mule/scripting http://www.mulesoft.org/schema/mul
 	title = "#[payload['title']]", 
 	date = "#[payload['date']]", 
 	category = #[payload['category'] != null ? ('\"' + payload['category'] + '\"') : "NULL"], 
-	city = #[payload['city'] != null ? ('\"' + payload['city'] + '\"') : "NULL"], 
-	country = #[payload['country'] != null ? ('\"' + payload['country'] + '\"') : "NULL"], 
 	description = #[payload['description'] != null ? ('\"' + payload['description'] + '\"') : "NULL"], 
-	street = #[payload['street'] != null ? ('\"' + payload['street'] + '\"') : "NULL"], 
 	geolocation = #[payload['geolocation'] != null ? ('\"' + payload['geolocation'] + '\"') : "NULL"], 
-	streetnr = #[payload['streetnr']], 
-	zipcode = #[payload['zipcode'] != null ? ('\"' + payload['zipcode'] + '\"') : "NULL"]
+	participants = #[payload['participants'] != null ? payload['participants'] : "NULL"] 
 WHERE id = #[flowVars.eventId];]]></db:dynamic-query>
-        </db:update>
 
+        </db:update>
         <db:select config-ref="MySQL_Configuration" doc:name="Get Event by eventId">
-            <db:dynamic-query><![CDATA[SELECT id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
+            <db:dynamic-query><![CDATA[SELECT id, title, date, category, participants, description, geolocation 
 FROM events 
 WHERE 
 	id = "#[flowVars.eventId]";]]></db:dynamic-query>
-
         </db:select>
         <payload-type-filter expectedType="java.util.List" doc:name="Must be List"/>
         <expression-filter expression="#[payload.size() &gt; 0]" doc:name="Result must not be empty"/>
@@ -105,7 +101,7 @@ WHERE
     <flow name="get:/capevents:api-config">
 
         <db:select config-ref="MySQL_Configuration" doc:name="Get Events Query">
-            <db:dynamic-query><![CDATA[select id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
+            <db:dynamic-query><![CDATA[select id, title, date, category, participants, description, geolocation 
 from events]]></db:dynamic-query>
 
         </db:select>
@@ -115,7 +111,7 @@ from events]]></db:dynamic-query>
 
     <flow name="get:/capevents/{eventId}:api-config">
         <db:select config-ref="MySQL_Configuration" doc:name="Get Event Query">
-            <db:dynamic-query><![CDATA[select id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
+            <db:dynamic-query><![CDATA[select id, title, date, category, participants, description, geolocation 
 from events where id = "#[flowVars.eventId]"]]></db:dynamic-query>
 
         </db:select>
@@ -132,26 +128,24 @@ from events where id = "#[flowVars.eventId]"]]></db:dynamic-query>
         <set-variable variableName="title" value="#[payload[&quot;title&quot;]]" doc:name="Set Title Variable"/>
         <set-variable variableName="date" value="#[payload[&quot;date&quot;]]" doc:name="Set Date Variable"/>
         <db:insert config-ref="MySQL_Configuration" doc:name="Insert Events Stmt">
-            <db:dynamic-query><![CDATA[INSERT INTO events (title,date,category,city,country,description,street,geolocation,streetnr,zipcode) VALUES (
+            <db:dynamic-query><![CDATA[INSERT INTO events (title,date,category,description,participants,geolocation) VALUES (
 	"#[payload['title']]", 
 	"#[payload['date']]", 
 	#[payload['category'] != null ? ('\"' + payload['category'] + '\"') : "NULL"], 
-	#[payload['city'] != null ? ('\"' + payload['city'] + '\"') : "NULL"], 
-	#[payload['country'] != null ? ('\"' + payload['country'] + '\"') : "NULL"], 
 	#[payload['description'] != null ? ('\"' + payload['description'] + '\"') : "NULL"], 
-	#[payload['street'] != null ? ('\"' + payload['street'] + '\"') : "NULL"], 
-	#[payload['geolocation'] != null ? ('\"' + payload['geolocation'] + '\"') : "NULL"], 
-	#[payload['streetnr']], 
-	#[payload['zipcode'] != null ? ('\"' + payload['zipcode'] + '\"') : "NULL"]
+	#[payload['participants'] != null ? payload['participants'] : "NULL"]
+	#[payload['geolocation'] != null ? ('\"' + payload['geolocation'] + '\"') : "NULL"]
 );]]></db:dynamic-query>
+
         </db:insert>
         <db:select config-ref="MySQL_Configuration" doc:name="Get Event by title and date">
-            <db:dynamic-query><![CDATA[SELECT id, title, 'date', category, participants, city, country, description, street, streetnr, zipcode, geolocation 
+            <db:dynamic-query><![CDATA[SELECT id, title, date, category, participants, description, geolocation 
 FROM events 
 WHERE 
 	title = "#[flowVars.title]" and 
 	date = "#[flowVars.date]";]]></db:dynamic-query>
         </db:select>
+
         <payload-type-filter expectedType="java.util.List" doc:name="Must be List"/>
         <expression-filter expression="#[payload.size() &gt; 0]" doc:name="Result must not be empty"/>
         <set-payload value="#[payload[0]]" doc:name="Select first object"/>
