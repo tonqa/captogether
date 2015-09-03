@@ -21,6 +21,11 @@ version: v1
                 "description": null,
                 "geolocation": null
               }]
+  options:
+    description: cors preflight request for posting events
+    responses:
+      200:
+        description: allowed          
   post:
     description: creates a new company event
     body:
@@ -32,9 +37,9 @@ version: v1
             "description": "writes an event with Id",
             "required": true,
             "properties": {
-              "date":  { "type": "string", "required": true },
+              "date":  { "type": "string", "required": true, "pattern": "^\\d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{4}$" },
               "title": { "type": "string", "required": true },
-              "category":  { "type": "string", "required": true },
+              "category":  { "type": "string", "required": true, "pattern": "^(SPORT|KINDER|ESSEN|KULTUR|BILDUNG|SPIELE)$" },
               "participants":  { "type": "integer", "required": true },
               "description":  { "type": "string", "required": false },
               "geolocation":  { "type": "string", "required": false }
@@ -80,6 +85,11 @@ version: v1
                   "description": null,
                   "geolocation": null
                 }
+    options:
+      description: cors preflight request for posting events
+      responses:
+        200:
+          description: allowed          
     put:
       description: writes an event with Id
       body:
@@ -91,9 +101,9 @@ version: v1
               "description": "writes an event with Id",
               "required": true,
               "properties": {
-                "date":  { "type": "string", "required": true },
+                "date":  { "type": "string", "required": true, "pattern": "^\\d{2} (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \\d{4}$" },
                 "title": { "type": "string", "required": true },
-                "category":  { "type": "string", "required": true },
+                "category":  { "type": "string", "required": true, "pattern": "^(SPORT|KINDER|ESSEN|KULTUR|BILDUNG|SPIELE)$" },
                 "participants":  { "type": "integer", "required": true },
                 "description":  { "type": "string", "required": false },
                 "geolocation":  { "type": "string", "required": false }
